@@ -1,0 +1,27 @@
+expensive-relay
+===============
+
+  - a nostr relay implementation based on relayer.
+  - uses postgres, which I think must be over version 12 since it uses generated columns.
+  - requires users to manually register themselves to be able to publish events and pay a fee. this should prevent spam.
+  - aside from that it's basically the same thing as relayer basic.
+
+running
+-------
+
+grab a binary from the releases page and run it with the following environment variables:
+
+    POSTGRESQL_DATABASE=postgres://name:pass@localhost:5432/dbname LNBITS_URL=https://infinity.lnbits.com LNBITS_TOKEN=zzz ./expensive-relay
+
+notice that it expects an LNbits _Infinity_ server, not Legend.
+
+it also accepts a HOST and a PORT environment variables.
+
+compiling
+---------
+
+if you know Go you already know this:
+
+    go get github.com/fiatjaf/expensive-relay
+
+or something like that.
