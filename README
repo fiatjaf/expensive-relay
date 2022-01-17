@@ -1,5 +1,5 @@
-expensive-relay
-===============
+expensive-relay, a sybil-free corner of nostr
+=============================================
 
   - a nostr relay implementation based on relayer.
   - uses postgres, which I think must be over version 12 since it uses generated columns.
@@ -11,11 +11,21 @@ running
 
 grab a binary from the releases page and run it with the following environment variables:
 
-    DOMAIN=example.com POSTGRESQL_DATABASE=postgres://name:pass@localhost:5432/dbname LNBITS_URL=https://infinity.lnbits.com LNBITS_TOKEN=zzz ./expensive-relay
+    HOST=127.0.0.1
+    PORT=12345
+    DOMAIN=example.com
+    POSTGRESQL_DATABASE=postgres://name:pass@localhost:5432/dbname
 
-notice that it expects an LNbits _Infinity_ server, not Legend.
+    # either
+    SPARKO_URL=http://127.0.0.1:9737
+    SPARKO_TOKEN=tokenwithaccessto_listinvoices_invoicewithdescriptionhash_stream
 
-it also accepts a HOST and a PORT environment variables.
+    # or
+    LND_HOST=
+    LND_CERT_PATH=
+    LND_MACAROON_PATH=
+
+adjust the values above accordingly.
 
 compiling
 ---------
