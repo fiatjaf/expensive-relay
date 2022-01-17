@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/fiatjaf/relayer"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/rs/zerolog/log"
 )
 
 func initDB(dburl string) (*sqlx.DB, error) {
@@ -36,10 +36,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS pubkeytimeidx ON event (pubkey, created_at);
 CREATE INDEX IF NOT EXISTS arbitrarytagvalues ON event USING gin (tagvalues);
 
 CREATE TABLE registered_users (
-  pubkey text NOT NULL,
-  registered_at int NOT NULL DEFAULT cast(extract(epoch from now()) as integer)
+  pubkey text PRIMARY KEY,
+  invoice text NOT NULL,
+  registered_at int
 );
     `)
-	log.Print(err)
+	relayer.Log.Print(err)
 	return db, nil
 }

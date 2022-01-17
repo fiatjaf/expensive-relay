@@ -11,7 +11,7 @@ running
 
 grab a binary from the releases page and run it with the following environment variables:
 
-    POSTGRESQL_DATABASE=postgres://name:pass@localhost:5432/dbname LNBITS_URL=https://infinity.lnbits.com LNBITS_TOKEN=zzz ./expensive-relay
+    DOMAIN=example.com POSTGRESQL_DATABASE=postgres://name:pass@localhost:5432/dbname LNBITS_URL=https://infinity.lnbits.com LNBITS_TOKEN=zzz ./expensive-relay
 
 notice that it expects an LNbits _Infinity_ server, not Legend.
 

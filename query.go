@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/fiatjaf/go-nostr"
-	"github.com/rs/zerolog/log"
+	"github.com/fiatjaf/relayer"
 )
 
 func (relay *ExpensiveRelay) QueryEvents(
@@ -136,15 +136,15 @@ func (relay *ExpensiveRelay) QueryEvents(
 		conditions = append(conditions, "true")
 	}
 
-	query := relay.DB.Rebind(`SELECT
+	query := relay.db.Rebind(`SELECT
       id, pubkey, created_at, kind, tags, content, sig
     FROM event WHERE ` +
 		strings.Join(conditions, " AND ") +
 		" ORDER BY created_at LIMIT 100")
 
-	err = relay.DB.Select(&events, query, params...)
+	err = relay.db.Select(&events, query, params...)
 	if err != nil && err != sql.ErrNoRows {
-		log.Warn().Err(err).Interface("filter", filter).Str("query", query).
+		relayer.Log.Warn().Err(err).Interface("filter", filter).Str("query", query).
 			Msg("failed to fetch events")
 		err = fmt.Errorf("failed to fetch events: %w", err)
 	}
