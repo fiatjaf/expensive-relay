@@ -37,6 +37,7 @@ func handleWebpage(w http.ResponseWriter, r *http.Request) {
   </label>
   <button>Get Invoice</button>
 </form>
+<p id=message></p>
 <a id=link><canvas id=qr /></a>
 <code id=invoice></code>
 
@@ -45,14 +46,19 @@ func handleWebpage(w http.ResponseWriter, r *http.Request) {
 document.querySelector('form').addEventListener('submit', async ev => {
   ev.preventDefault()
   let res = await (await fetch('/.well-known/lnurlp/' + ev.target.pubkey.value + '?amount=` + strconv.Itoa(PRICE_SAT*1000) + `')).text()
-  let { pr } = JSON.parse(res)
-  invoice.innerHTML = pr
-  link.href = 'lightning:' + pr
-  new QRious({
-    element: qr,
-    value: pr.toUpperCase(),
-    size: 300
-  });
+  let { pr, reason } = JSON.parse(res)
+
+  if (pr) {
+    invoice.innerHTML = pr
+    link.href = 'lightning:' + pr
+    new QRious({
+      element: qr,
+      value: pr.toUpperCase(),
+      size: 300
+    });
+  } else {
+    message.innerHTML = reason
+  }
 })
 </script>
 
@@ -108,16 +114,22 @@ func handleLnurlRegister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		_, err = relay.db.Exec(`
+		var invoice string
+		if err := relay.db.Get(&invoice, `
             INSERT INTO registered_users (pubkey, invoice) VALUES ($1, $2)
             ON CONFLICT (pubkey) DO UPDATE SET invoice = CASE
               WHEN registered_users.registered_at IS NULL THEN excluded.invoice
               ELSE registered_users.invoice
             END
-        `, pubkey, inv.CheckingID)
-		if err != nil {
+            RETURNING invoice
+        `, pubkey, inv.CheckingID); err != nil {
 			json.NewEncoder(w).Encode(
 				lnurl.ErrorResponse("failed to save invoice: " + err.Error()))
+			return
+		}
+
+		if invoice != inv.CheckingID {
+			json.NewEncoder(w).Encode(lnurl.ErrorResponse("user is already registered"))
 			return
 		}
 
