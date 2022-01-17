@@ -24,6 +24,8 @@ func handleWebpage(w http.ResponseWriter, r *http.Request) {
 
 <h1>expensive relay</h1>
 
+<a href="https://github.com/fiatjaf/expensive-relay">https://github.com/fiatjaf/expensive-relay</a>
+
 <p>this is a nostr relay that only accepts events published from keys that pay a registration fee. this is an antispam measure. you can still be banned if you're spamming or doing something bad.</p>
 
 <p>to register your nostr public key, type it below and click the button. or send ` + strconv.Itoa(PRICE_SAT) + ` satoshis to <code>&lt;yourpubkey&gt;@` + relay.Domain + `</code>.</p>
