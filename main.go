@@ -8,18 +8,14 @@ import (
 	"github.com/jmoiron/sqlx/reflectx"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lnbits/relampago"
-	relampago_connect "github.com/lnbits/relampago/connect"
+	rc "github.com/lnbits/relampago/connect"
 )
 
 type ExpensiveRelay struct {
 	Domain           string `envconfig:"DOMAIN"`
 	PostgresDatabase string `envconfig:"POSTGRESQL_DATABASE"`
 
-	SparkoURL       string `envconfig:"SPARKO_URL"`
-	SparkoToken     string `envconfig:"SPARKO_TOKEN"`
-	LNDHost         string `envconfig:"LND_HOST"`
-	LNDCertPath     string `envconfig:"LND_CERT_PATH"`
-	LNDMacaroonPath string `envconfig:"LND_MACAROON_PATH"`
+	LightningBackendSettings rc.LightningBackendSettings
 
 	db *sqlx.DB
 	ln relampago.Wallet
@@ -35,6 +31,11 @@ func (relay *ExpensiveRelay) Init() error {
 		return fmt.Errorf("couldn't process envconfig: %w", err)
 	}
 
+	err = envconfig.Process("", &relay.LightningBackendSettings)
+	if err != nil {
+		return fmt.Errorf("couldn't process envconfig: %w", err)
+	}
+
 	if db, err := initDB(relay.PostgresDatabase); err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
 	} else {
@@ -43,7 +44,7 @@ func (relay *ExpensiveRelay) Init() error {
 	}
 
 	// lightning
-	relay.ln, err = relampago_connect.Connect()
+	relay.ln, err = rc.Connect()
 	if err != nil {
 		return fmt.Errorf("failed to connect to lightning backend: %w", err)
 	}
