@@ -15,6 +15,7 @@ grab a binary from the releases page and run it with the following environment v
     PORT=12345
     DOMAIN=example.com
     POSTGRESQL_DATABASE=postgres://name:pass@localhost:5432/dbname
+    LIGHTNING_BACKEND_TYPE=[lndgrpc | sparko]
 
     # either
     SPARKO_URL=http://127.0.0.1:9737
