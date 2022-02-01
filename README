@@ -16,15 +16,16 @@ grab a binary from the releases page and run it with the following environment v
     DOMAIN=example.com
     POSTGRESQL_DATABASE=postgres://name:pass@localhost:5432/dbname
     LIGHTNING_BACKEND_TYPE=[lndgrpc | sparko]
+    LIGHTNING_CONNECT_TIMEOUT=15 # integer seconds
 
     # either
     SPARKO_URL=http://127.0.0.1:9737
     SPARKO_TOKEN=tokenwithaccessto_listinvoices_invoicewithdescriptionhash_stream
 
     # or
-    LND_HOST=
-    LND_CERT_PATH=
-    LND_MACAROON_PATH=
+    LND_HOST=127.0.0.1:10009
+    LND_CERT_PATH=/home/user/.lnd/tls.cert
+    LND_MACAROON_PATH=/home/user/.lnd/data/chain/bitcoin/mainnet/permissions.macaroon
 
 adjust the values above accordingly.
 
