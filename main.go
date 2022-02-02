@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/fiatjaf/relayer"
 	"github.com/jmoiron/sqlx"
@@ -14,6 +16,9 @@ import (
 type ExpensiveRelay struct {
 	Domain           string `envconfig:"DOMAIN"`
 	PostgresDatabase string `envconfig:"POSTGRESQL_DATABASE"`
+	IndexTemplate    string `envconfig:"INDEX_TEMPLATE" default:"./templates/index_example.html.tmpl"`
+	InvoiceTemplate  string `envconfig:"INVOICE_TEMPLATE" default:"./templates/invoice_example.html.tmpl"`
+	PriceSats        string `envconfig:"PRICE_SATS" default:"500"`
 
 	LightningBackendSettings rc.LightningBackendSettings
 
@@ -29,6 +34,10 @@ func (relay *ExpensiveRelay) Init() error {
 	err := envconfig.Process("", relay)
 	if err != nil {
 		return fmt.Errorf("couldn't process envconfig: %w", err)
+	}
+	priceSats, err = strconv.ParseInt(relay.PriceSats, 10, 64)
+	if priceSats < 1 || err != nil {
+		return errors.New("PRICE_SATS should be an integer above 0")
 	}
 
 	err = envconfig.Process("", &relay.LightningBackendSettings)
@@ -62,7 +71,8 @@ func (relay *ExpensiveRelay) Init() error {
 
 	// endpoints
 	relayer.Router.Path("/").HandlerFunc(handleWebpage)
-	relayer.Router.Path("/.well-known/lnurlp/{pubkey}").HandlerFunc(handleLnurlRegister)
+	relayer.Router.Path("/invoice").HandlerFunc(handleLnurlRegisterHTMLResponse)
+	relayer.Router.Path("/.well-known/lnurlp/{pubkey}").HandlerFunc(handleLnurlRegisterJSONResponse)
 
 	// cleanup events
 	go cleanupRoutine()

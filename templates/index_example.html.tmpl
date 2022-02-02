@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>expensive relay</title>
+<style>
+  body {
+    font-family: BlinkMacSystemFont, "Avenir Next", Avenir, "Nimbus Sans L", Roboto, Noto, "Segoe UI", Arial, Helvetica, "Helvetica Neue", sans-serif;
+    margin: 10px auto;
+    width: 800px;
+    max-width: 90%;
+  }
+</style>
+<body>
+  <center><h1>expensive relay</h1></center>
+  <p>this is a nostr relay that only accepts events published from keys that pay a registration fee. this is an antispam measure. you can still be banned if you're spamming or doing something bad.</p>
+  <p>to register your nostr public key, type it below and click the button. or send {{.PriceSat}} satoshis to <code>&lt;yourpubkey&gt;@{{.Domain}}</code>.</p>
+
+  <center>
+    <form>
+      <label for="pubkey">nostr public key:</label>
+      <input type="text" name="pubkey"> 
+      <input type="submit" value="Get Invoice">
+    </form>
+    <p id="message"></p>
+    <a id="link" style="display: none;">
+      <canvas id="qr"></canvas>
+      <div>open in lightning wallet &#8594;</div>
+    </a>
+    <br>
+    <div style="width: 240px;"><code id="invoice" style="overflow-wrap: anywhere;"></code></div>
+    <br>
+    <p>powered by <a href="https://github.com/fiatjaf/expensive-relay">https://github.com/fiatjaf/expensive-relay</a></p>
+  </center>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script>
+    document.querySelector('form').addEventListener('submit', async ev => {
+      ev.preventDefault()
+      let res = await (await fetch('/.well-known/lnurlp/' + ev.target.pubkey.value + '?amount={{.Amount}}&response=json')).text()
+      let { pr, reason } = JSON.parse(res)
+
+      if (pr) {
+        invoice.innerHTML = pr
+        link.href = 'lightning:' + pr
+        new QRious({
+          element: qr,
+          value: pr.toUpperCase(),
+          size: 300
+        });
+        link.style.display = "inherit";
+      } else {
+        message.innerHTML = reason
+      }
+    })
+  </script>
+</body>

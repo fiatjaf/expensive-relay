@@ -17,6 +17,9 @@ grab a binary from the releases page and run it with the following environment v
     POSTGRESQL_DATABASE=postgres://name:pass@localhost:5432/dbname
     LIGHTNING_BACKEND_TYPE=[lndgrpc | sparko]
     LIGHTNING_CONNECT_TIMEOUT=15 # integer seconds
+    INDEX_TEMPLATE=./templates/index_example.html.tmpl # path for the html template to be served for the '/' route
+    INVOICE_TEMPLATE=./templates/invoice_example.html.tmpl # path for the html template to be served for the '/invoice' route
+    PRICE_SATS=1000 # custom price in satoshis for pubkey validation. integer greater than 0
 
     # either
     SPARKO_URL=http://127.0.0.1:9737

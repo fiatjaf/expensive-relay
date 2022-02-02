@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>invoice</title>
+<body style="font-family: BlinkMacSystemFont, 'Avenir Next', Avenir, 'Nimbus Sans L', Roboto, Noto, 'Segoe UI', Arial, Helvetica, 'Helvetica Neue', sans-serif;">
+  <center>
+    <a href="lightning:{{.InvoiceRaw}}">
+      <img src="data:image/png;base64,{{.InvoiceQR}}">
+      <div>open in lightning wallet &#8594;</div>
+    </a>
+    <br>
+    <div><code style="overflow-wrap: anywhere;">{{.InvoiceRaw}}</code></div>
+  </center>
+</body>

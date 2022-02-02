@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>expensive relay</title>
+<style>
+  body {
+    font-family: BlinkMacSystemFont, "Avenir Next", Avenir, "Nimbus Sans L", Roboto, Noto, "Segoe UI", Arial, Helvetica, "Helvetica Neue", sans-serif;
+    margin: 10px auto;
+    width: 800px;
+    max-width: 90%;
+  }
+
+  iframe {
+    width: 260px;
+    height: 500px;
+    border: none;
+  }
+</style>
+<body>
+  <center><h1>expensive relay</h1></center>
+  <p>this is a nostr relay that only accepts events published from keys that pay a registration fee. this is an antispam measure. you can still be banned if you're spamming or doing something bad.</p>
+  <p>to register your nostr public key, type it below and click the button. or send {{.PriceSat}} satoshis to <code>&lt;yourpubkey&gt;@{{.Domain}}</code>.</p>
+
+  <center>
+    <form method="get" target="response-frame" action="/invoice">
+      <input type="text" placeholder="nostr public key" name="pubkey"> 
+      <input type="hidden" name="amount" value="{{.Amount}}">
+      <input type="submit" value="Get Invoice">
+    </form>
+    <iframe name="response-frame" scrolling="no"></iframe>
+    <p>powered by <a href="https://github.com/fiatjaf/expensive-relay">https://github.com/fiatjaf/expensive-relay</a></p>
+  </center>
+</body>
