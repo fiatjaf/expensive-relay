@@ -73,6 +73,7 @@ func (relay *ExpensiveRelay) Init() error {
 	relayer.Router.Path("/").HandlerFunc(handleWebpage)
 	relayer.Router.Path("/invoice").HandlerFunc(handleLnurlRegisterHTMLResponse)
 	relayer.Router.Path("/.well-known/lnurlp/{pubkey}").HandlerFunc(handleLnurlRegisterJSONResponse)
+	relayer.Router.Path("/check_registration/{pubkey}").HandlerFunc(handleCheckRegistration)
 
 	// cleanup events
 	go cleanupRoutine()

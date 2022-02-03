@@ -34,7 +34,7 @@
   <script>
     document.querySelector('form').addEventListener('submit', async ev => {
       ev.preventDefault()
-      let res = await (await fetch('/.well-known/lnurlp/' + ev.target.pubkey.value + '?amount={{.Amount}}&response=json')).text()
+      let res = await (await fetch('/.well-known/lnurlp/' + ev.target.pubkey.value + '?amount={{.Amount}}')).text()
       let { pr, reason } = JSON.parse(res)
 
       if (pr) {

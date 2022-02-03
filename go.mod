@@ -14,3 +14,5 @@ require (
 	github.com/rs/zerolog v1.26.1 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 )
+
+replace github.com/lnbits/relampago => /Users/developer/git/go-workspace/src/github.com/rdbell/relampago

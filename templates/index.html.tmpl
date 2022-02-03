@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>expensive relay</title>
+<style>
+  body {
+    width: 800px;
+    max-width: 90%;
+    font-size: .8em;
+  }
+
+  iframe {
+    width: 260px;
+    height: 500px;
+    border: none;
+  }
+</style>
+<body>
+  <center>
+    <form method="get" target="response-frame" action="/invoice">
+      <input type="text" placeholder="pubkey" value="{{.Pubkey}}" name="pubkey"> 
+      <input type="hidden" name="amount" value="{{.Amount}}">
+      <input type="submit" value="get invoice">
+    </form>
+    <iframe name="response-frame" scrolling="no"></iframe>
+  </center>
+</body>

@@ -27,10 +27,18 @@ func handleWebpage(w http.ResponseWriter, r *http.Request) {
 		PriceSat int64
 		Domain   string
 		Amount   int64
+		Pubkey   string
 	}
+
 	pageData.PriceSat = priceSats
 	pageData.Amount = priceSats * 1000
 	pageData.Domain = relay.Domain
+
+	// Attempt to read pubkey from URL GET param
+	pubkey := r.URL.Query().Get("pubkey")
+	if v, err := hex.DecodeString(pubkey); err == nil && len(v) == 32 {
+		pageData.Pubkey = pubkey
+	}
 
 	// Parse template
 	tmpl, err := template.ParseFiles(relay.IndexTemplate)
@@ -93,6 +101,7 @@ func handleLnurlRegisterHTMLResponse(w http.ResponseWriter, r *http.Request) {
 
 // Handle register with JSON response
 func handleLnurlRegisterJSONResponse(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	response, err := register(r)
 	if err != nil {
 		json.NewEncoder(w).Encode(lnurl.ErrorResponse(err.Error()))
@@ -188,4 +197,44 @@ func handlePaidInvoice(status relampago.InvoiceStatus) {
 				Msg("user registered")
 		}
 	}
+}
+
+func handleCheckRegistration(w http.ResponseWriter, r *http.Request) {
+	// TODO: set http status codes?
+	w.Header().Set("Content-Type", "application/json")
+	var response struct {
+		Success bool   `json:"success"`
+		Message string `json:"message"`
+	}
+	response.Success = false
+	response.Message = ""
+
+	// Attempt to read pubkey from mux vars
+	pubkey := mux.Vars(r)["pubkey"]
+	if v, err := hex.DecodeString(pubkey); err != nil || len(v) != 32 {
+		response.Message = "invalid pubkey"
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// Query DB for registration status
+	var registeredAt int
+	if err := relay.db.Get(&registeredAt, `
+           SELECT registered_at FROM registered_users WHERE pubkey = $1
+        `, pubkey); err != nil {
+		response.Message = "pubkey is not registered"
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	if registeredAt < 1 {
+		response.Message = "pubkey is not registered"
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	response.Message = fmt.Sprintf("pubkey registered at timestamp %d", registeredAt)
+	response.Success = true
+	json.NewEncoder(w).Encode(response)
+	return
 }
