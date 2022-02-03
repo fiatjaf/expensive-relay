@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/fiatjaf/relayer"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/rdbell/relayer"
 )
 
 func initDB(dburl string) (*sqlx.DB, error) {

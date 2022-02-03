@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/fiatjaf/go-nostr"
-	"github.com/fiatjaf/relayer"
+	"github.com/rdbell/relayer"
 )
 
 func (relay *ExpensiveRelay) QueryEvents(

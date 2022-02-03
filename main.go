@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/fiatjaf/relayer"
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
 	"github.com/kelseyhightower/envconfig"
-	"github.com/lnbits/relampago"
-	rc "github.com/lnbits/relampago/connect"
+	"github.com/rdbell/relampago"
+	rc "github.com/rdbell/relampago/connect"
+	"github.com/rdbell/relayer"
 )
 
 type ExpensiveRelay struct {

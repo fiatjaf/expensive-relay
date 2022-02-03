@@ -12,9 +12,9 @@ import (
 	"strconv"
 
 	"github.com/fiatjaf/go-lnurl"
-	"github.com/fiatjaf/relayer"
 	"github.com/gorilla/mux"
-	"github.com/lnbits/relampago"
+	"github.com/rdbell/relampago"
+	"github.com/rdbell/relayer"
 	"github.com/skip2/go-qrcode"
 )
 
