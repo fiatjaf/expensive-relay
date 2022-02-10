@@ -76,7 +76,7 @@ func (relay *ExpensiveRelay) Init() error {
 	relayer.Router.Path("/check_registration/{pubkey}").HandlerFunc(handleCheckRegistration)
 
 	// cleanup events
-	//go cleanupRoutine()
+	go cleanupRoutine()
 
 	return nil
 }

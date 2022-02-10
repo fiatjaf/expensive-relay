@@ -43,13 +43,6 @@ WHERE pubkey = $1 AND registered_at IS NOT NULL
 	case nostr.KindContactList:
 		// delete past contact lists from this same pubkey
 		relay.db.Exec(`DELETE FROM event WHERE pubkey = $1 AND kind = 3`, evt.PubKey)
-	default:
-		// delete all but the 10 most recent ones
-		relay.db.Exec(`DELETE FROM event WHERE pubkey = $1 AND kind = $2 AND created_at < (
-          SELECT created_at FROM event WHERE pubkey = $1
-          ORDER BY created_at DESC OFFSET 10 LIMIT 1
-        )`,
-			evt.PubKey, evt.Kind)
 	}
 
 	// insert
