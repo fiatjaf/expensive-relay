@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/fiatjaf/go-nostr"
-	"github.com/fiatjaf/relayer"
+	"github.com/rs/zerolog/log"
 )
 
 func (relay *ExpensiveRelay) QueryEvents(
-	filter *nostr.EventFilter,
+	filter *nostr.Filter,
 ) (events []nostr.Event, err error) {
 	var conditions []string
 	var params []interface{}
@@ -29,21 +30,21 @@ func (relay *ExpensiveRelay) QueryEvents(
 			return
 		}
 
-		inids := make([]string, 0, len(filter.IDs))
+		likeids := make([]string, 0, len(filter.IDs))
 		for _, id := range filter.IDs {
 			// to prevent sql attack here we will check if
 			// these ids are valid 32byte hex
 			parsed, err := hex.DecodeString(id)
-			if err != nil || len(parsed) != 32 {
+			if err != nil || len(parsed) <= 32 {
 				continue
 			}
-			inids = append(inids, fmt.Sprintf("'%x'", parsed))
+			likeids = append(likeids, fmt.Sprintf("id LIKE '%x%%'", parsed))
 		}
-		if len(inids) == 0 {
+		if len(likeids) == 0 {
 			// ids being [] mean you won't get anything
 			return
 		}
-		conditions = append(conditions, `id IN (`+strings.Join(inids, ",")+`)`)
+		conditions = append(conditions, "("+strings.Join(likeids, " OR ")+")")
 	}
 
 	if filter.Authors != nil {
@@ -52,7 +53,7 @@ func (relay *ExpensiveRelay) QueryEvents(
 			return
 		}
 
-		inkeys := make([]string, 0, len(filter.Authors))
+		likekeys := make([]string, 0, len(filter.Authors))
 		for _, key := range filter.Authors {
 			// to prevent sql attack here we will check if
 			// these keys are valid 32byte hex
@@ -60,13 +61,13 @@ func (relay *ExpensiveRelay) QueryEvents(
 			if err != nil || len(parsed) != 32 {
 				continue
 			}
-			inkeys = append(inkeys, fmt.Sprintf("'%x'", parsed))
+			likekeys = append(likekeys, fmt.Sprintf("pubkey LIKE '%x%%'", parsed))
 		}
-		if len(inkeys) == 0 {
+		if len(likekeys) == 0 {
 			// authors being [] mean you won't get anything
 			return
 		}
-		conditions = append(conditions, `pubkey IN (`+strings.Join(inkeys, ",")+`)`)
+		conditions = append(conditions, "("+strings.Join(likekeys, " OR ")+")")
 	}
 
 	if filter.Kinds != nil {
@@ -88,27 +89,19 @@ func (relay *ExpensiveRelay) QueryEvents(
 	}
 
 	tagQuery := make([]string, 0, 1)
-	if filter.TagE != nil {
-		if len(filter.TagE) > 10 {
+	for _, values := range filter.Tags {
+		if len(values) == 0 {
+			// any tag set to [] is wrong
+			return
+		}
+
+		// add these tags to the query
+		tagQuery = append(tagQuery, values...)
+
+		if len(tagQuery) > 10 {
 			// too many tags, fail everything
 			return
 		}
-		if len(filter.TagE) == 0 {
-			// #e being [] mean you won't get anything
-			return
-		}
-		tagQuery = append(tagQuery, filter.TagE...)
-	}
-	if filter.TagP != nil {
-		if len(filter.TagP) > 10 {
-			// too many tags, fail everything
-			return
-		}
-		if len(filter.TagP) == 0 {
-			// #e being [] mean you won't get anything
-			return
-		}
-		tagQuery = append(tagQuery, filter.TagP...)
 	}
 
 	if len(tagQuery) > 0 {
@@ -117,18 +110,20 @@ func (relay *ExpensiveRelay) QueryEvents(
 			arrayBuild[i] = "?"
 			params = append(params, tagValue)
 		}
+
+		// we use a very bad implementation in which we only check the tag values and
+		// ignore the tag names
 		conditions = append(conditions,
 			"tagvalues && ARRAY["+strings.Join(arrayBuild, ",")+"]")
 	}
 
-	if filter.Since != 0 {
+	if filter.Since != nil {
 		conditions = append(conditions, "created_at > ?")
-		params = append(params, filter.Since)
+		params = append(params, filter.Since.Unix())
 	}
-
-	if filter.Until != 0 {
+	if filter.Until != nil {
 		conditions = append(conditions, "created_at < ?")
-		params = append(params, filter.Until)
+		params = append(params, filter.Until.Unix())
 	}
 
 	if len(conditions) == 0 {
@@ -142,12 +137,24 @@ func (relay *ExpensiveRelay) QueryEvents(
 		strings.Join(conditions, " AND ") +
 		" ORDER BY created_at LIMIT 100")
 
-	err = relay.db.Select(&events, query, params...)
+	rows, err := relay.db.Query(query, params...)
 	if err != nil && err != sql.ErrNoRows {
-		relayer.Log.Warn().Err(err).Interface("filter", filter).Str("query", query).
+		log.Warn().Err(err).Interface("filter", filter).Str("query", query).
 			Msg("failed to fetch events")
-		err = fmt.Errorf("failed to fetch events: %w", err)
+		return nil, fmt.Errorf("failed to fetch events: %w", err)
 	}
 
-	return
+	for rows.Next() {
+		var evt nostr.Event
+		var timestamp int64
+		err := rows.Scan(&evt.ID, &evt.PubKey, &timestamp,
+			&evt.Kind, &evt.Tags, &evt.Content, &evt.Sig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+		evt.CreatedAt = time.Unix(timestamp, 0)
+		events = append(events, evt)
+	}
+
+	return events, nil
 }
