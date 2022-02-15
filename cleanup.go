@@ -7,7 +7,7 @@ import (
 // every hour, delete all very old events
 func cleanupRoutine() {
 	for {
-		// TODO: cleanup
+		// TODO: query board app for list of abusive users and clean up their old events?
 		time.Sleep(60 * time.Minute)
 	}
 }
